@@ -273,7 +273,7 @@
             <div class="api-section">
                 <h3>🔑 API Key Setup</h3>
                 <div class="api-input-group">
-                    <input type="password" class="api-input" id="apiKey" placeholder="Enter your OpenAI API key">
+                    <input type="password" class="api-input" id="apiKey" placeholder="Enter your Google API key">
                     <button class="save-btn" onclick="saveApiKey()">Save Key</button>
                 </div>
                 <div class="api-status" id="apiStatus">
@@ -306,7 +306,7 @@
     <script>
         // Check for saved API key on page load
         window.onload = function() {
-            const savedKey = localStorage.getItem('openai_api_key_aggie');
+            const savedKey = localStorage.getItem('google_api_key_aggie');
             if (savedKey) {
                 document.getElementById('apiKey').value = savedKey;
                 updateApiStatus(true);
@@ -316,10 +316,10 @@
         function saveApiKey() {
             const apiKey = document.getElementById('apiKey').value.trim();
             if (apiKey) {
-                localStorage.setItem('openai_api_key_aggie', apiKey);
+                localStorage.setItem('google_api_key_aggie', apiKey);
                 updateApiStatus(true);
             } else {
-                localStorage.removeItem('openai_api_key_aggie');
+                localStorage.removeItem('google_api_key_aggie');
                 updateApiStatus(false);
             }
         }
@@ -334,13 +334,13 @@
         }
 
         async function generateRealityCheck() {
-            const apiKey = localStorage.getItem('openai_api_key_aggie') || document.getElementById('apiKey').value.trim();
+            const apiKey = localStorage.getItem('google_api_key_aggie') || document.getElementById('apiKey').value.trim();
             const outputBox = document.getElementById('outputBox');
             const realityBtn = document.getElementById('realityBtn');
 
             if (!apiKey) {
                 outputBox.className = 'output-box error';
-                outputBox.textContent = '🚫 Please enter your API key first!';
+                outputBox.textContent = '🚫 Please enter your Google API key first!';
                 return;
             }
 
@@ -351,23 +351,21 @@
             outputBox.textContent = 'Digging up all the latest Aggie disasters...';
 
             try {
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: 'gpt-4',
-                        messages: [{
-                            role: 'system',
-                            content: 'You are a brutally honest sports analyst who specializes in pointing out the flaws and missteps of college football teams. You research current developments and provide harsh but fair criticism. Be thorough, specific, and don\'t pull any punches, but keep it factual and based on real issues.'
-                        }, {
-                            role: 'user',
-                            content: 'Research the latest developments about Texas A&M football (within the last 6 months) and write a comprehensive reality check that points out all their current flaws, missteps, and problems. Include specific examples of poor decisions, underperformance, recruiting issues, coaching problems, or any other legitimate criticisms. Be harsh but fair, and organize it in a clear, scathing breakdown. Make it detailed and specific to recent events.'
+                        contents: [{
+                            parts: [{
+                                text: 'You are a brutally honest sports analyst who specializes in pointing out the flaws and missteps of college football teams. Research the latest developments about Texas A&M football (within the last 6 months) and write a comprehensive reality check that points out all their current flaws, missteps, and problems. Include specific examples of poor decisions, underperformance, recruiting issues, coaching problems, or any other legitimate criticisms. Be harsh but fair, and organize it in a clear, scathing breakdown. Make it detailed and specific to recent events.'
+                            }]
                         }],
-                        max_tokens: 800,
-                        temperature: 0.7
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 800
+                        }
                     })
                 });
 
@@ -376,10 +374,10 @@
                 }
 
                 const data = await response.json();
-                const realityCheck = data.choices[0].message.content;
+                const realityCheck = data.candidates[0].content.parts[0].text;
 
                 outputBox.className = 'output-box has-content';
-                outputBox.innerHTML = realityCheck;
+                outputBox.innerHTML = realityCheck.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 
             } catch (error) {
                 outputBox.className = 'output-box error';
