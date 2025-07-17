@@ -348,29 +348,9 @@
             realityBtn.disabled = true;
             realityBtn.textContent = '🔄 RESEARCHING THE PAIN...';
             outputBox.className = 'output-box loading';
-            outputBox.textContent = 'Searching the web for latest Aggie disasters...';
+            outputBox.textContent = 'Analyzing the latest Aggie disasters from 2025...';
 
             try {
-                // First, search for current Texas A&M football news
-                const searchQuery = "Texas A&M football 2025 problems issues coaching recruiting news";
-                const searchResponse = await fetch(`https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=017576662512468239146:omuauf_lfve&q=${encodeURIComponent(searchQuery)}&num=10`);
-                
-                let searchResults = "";
-                if (searchResponse.ok) {
-                    const searchData = await searchResponse.json();
-                    if (searchData.items && searchData.items.length > 0) {
-                        searchResults = searchData.items.map(item => `${item.title}: ${item.snippet}`).join('\n\n');
-                    }
-                }
-
-                // If search fails or no results, use general prompt
-                if (!searchResults) {
-                    searchResults = "No current search results available. Please analyze based on known recent trends in Texas A&M football.";
-                }
-
-                outputBox.textContent = 'Analyzing the latest disasters and crafting brutal reality check...';
-
-                // Now generate the reality check with search results
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {
@@ -379,17 +359,26 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: `You are a brutally honest sports analyst. Based on the following current information about Texas A&M football, write a comprehensive reality check that points out all their current flaws, missteps, and problems. Be harsh but fair, and focus specifically on 2025 developments.
+                                text: `You are a brutally honest sports analyst with access to current information. Write a comprehensive reality check about Texas A&M football focusing specifically on their 2025 season and recent developments. 
 
-Current Texas A&M Football Information:
-${searchResults}
+Research and analyze the following areas for Texas A&M football in 2025:
+- Current coaching staff performance and decisions
+- 2025 recruiting class and any recruiting failures
+- Player transfers and portal activity 
+- Recent game performances and losses
+- Administrative decisions and controversies
+- Fan and media criticism
+- Conference realignment impacts
+- Financial issues or scandals
 
-Write a scathing but factual breakdown of their current issues. Include specific examples from the information provided. Organize it clearly with bold headers and be ruthlessly honest about their problems. Make it detailed and specific to recent events in 2025.`
+Write a scathing but factual breakdown of their current issues. Be ruthlessly honest about their problems and missteps. Use specific examples and organize with bold headers. Focus on what's actually happening in 2025 and why Aggie fans should be concerned.
+
+Make this a comprehensive roast based on real current issues, not generic complaints.`
                             }]
                         }],
                         generationConfig: {
                             temperature: 0.7,
-                            maxOutputTokens: 1000
+                            maxOutputTokens: 1200
                         }
                     })
                 });
